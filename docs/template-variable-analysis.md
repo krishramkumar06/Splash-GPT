@@ -412,3 +412,11 @@ This document analyzes each email template to identify variables that change bet
 3. **Sprout admin HQ**: `sprout-teacher-logistics` says LC 105, but `sprout-parent-logistics` says LC 104
 4. **teach-for-sprout**: Says "Sprout Spring '25" but dates are for Fall - likely copy/paste error in original
 
+
+
+
+
+
+
+
+
