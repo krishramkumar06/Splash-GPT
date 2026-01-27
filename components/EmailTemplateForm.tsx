@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, MapPin, Users, Link2, Video, Highlighter } from "lucide-react";
+import { Calendar, MapPin, Users, Link2, Video, Highlighter, Download, Upload } from "lucide-react";
 import { semesterConfigs, getDefaultConfigForProgram } from "@/lib/email-templates/config";
 import { SemesterConfig, ZoomSession } from "@/lib/email-templates/types";
 import {
@@ -22,6 +22,7 @@ import {
   FIXED_TIMES,
 } from "@/lib/email-templates/date-utils";
 import { RichTextEditor, textToHtml } from "@/components/RichTextEditor";
+import { validateConfig, exportProfile, validateImportedProfile, deserializeConfig } from "@/lib/email-templates/profile-utils";
 
 // Import all email templates
 import {
@@ -41,6 +42,9 @@ import {
   SPLASH_TEACHER_FORMS_ORIENTATION,
   SPLASH_STUDENT_REGISTRATION_OPEN,
   SPLASH_PRINTOUT_REMINDER,
+  TEACH_FOR_SPLASH_RECRUITMENT,
+  TEACHER_DEADLINE_EXTENSION,
+  STUDENT_RECRUITMENT,
 } from "@/constants/email-templates";
 
 interface EmailTemplate {
@@ -53,24 +57,50 @@ interface EmailTemplate {
 }
 
 const EMAIL_TEMPLATES: EmailTemplate[] = [
-  // Splash Templates
-  { id: "splash-student-registration-open", name: "Student Registration Open", ...SPLASH_STUDENT_REGISTRATION_OPEN, audience: "student", program: "Splash" },
-  { id: "splash-registration-due-tomorrow", name: "Registration Due Tomorrow", ...SPLASH_REGISTRATION_DUE_TOMORROW, audience: "student", program: "Splash" },
-  { id: "splash-student-logistics", name: "Student/Parent Logistics (2 days before)", ...SPLASH_STUDENT_LOGISTICS, audience: "parent", program: "Splash" },
-  { id: "splash-tomorrow-student", name: "Day Before - Students", ...SPLASH_TOMORROW_STUDENT, audience: "student", program: "Splash" },
-  { id: "splash-teacher-forms-orientation", name: "Teacher Forms & Orientation", ...SPLASH_TEACHER_FORMS_ORIENTATION, audience: "teacher", program: "Splash" },
-  { id: "splash-training-reminder", name: "Training Reminder", ...SPLASH_TRAINING_REMINDER, audience: "teacher", program: "Splash" },
-  { id: "splash-teacher-training-resources", name: "Teacher Training Resources", ...SPLASH_TEACHER_TRAINING_RESOURCES, audience: "teacher", program: "Splash" },
-  { id: "splash-printout-reminder", name: "Printout Submission Reminder", ...SPLASH_PRINTOUT_REMINDER, audience: "teacher", program: "Splash" },
-  { id: "splash-teacher-logistics", name: "Teacher Logistics (few days before)", ...SPLASH_TEACHER_LOGISTICS, audience: "teacher", program: "Splash" },
-  { id: "splash-tomorrow-teacher", name: "Day Before - Teachers", ...SPLASH_TOMORROW_TEACHER, audience: "teacher", program: "Splash" },
-  // Sprout Templates
-  { id: "teach-for-sprout", name: "Teach for Sprout", ...TEACH_FOR_SPROUT, audience: "teacher", program: "Sprout" },
-  { id: "sprout-student-registration", name: "Student Registration Open", ...SPROUT_STUDENT_REGISTRATION, audience: "student", program: "Sprout" },
-  { id: "sprout-teacher-forms-orientation", name: "Teacher Forms & Orientation", ...SPROUT_TEACHER_FORMS_ORIENTATION, audience: "teacher", program: "Sprout" },
-  { id: "sprout-volunteer-invitation", name: "Volunteer Invitation", ...SPROUT_VOLUNTEER_INVITATION, audience: "volunteer", program: "Sprout" },
-  { id: "sprout-parent-logistics", name: "Parent Logistics (2 days before)", ...SPROUT_PARENT_LOGISTICS, audience: "parent", program: "Sprout" },
-  { id: "sprout-teacher-logistics", name: "Teacher Logistics (few days before)", ...SPROUT_TEACHER_LOGISTICS, audience: "teacher", program: "Sprout" },
+  // ===== SPLASH TEMPLATES (Chronological Order) =====
+
+  // Week 1: Teacher Recruitment (1/13)
+  { id: "teacher-recruitment", name: "1. Teacher Recruitment", ...TEACH_FOR_SPLASH_RECRUITMENT, audience: "teacher", program: "both" },
+
+  // Week 2: Teacher Deadline Extension (1/24-1/26)
+  { id: "teacher-deadline-extension", name: "2. Teacher Deadline Extension", ...TEACHER_DEADLINE_EXTENSION, audience: "teacher", program: "both" },
+
+  // Week 3: Student Registration Opens (1/27)
+  { id: "student-recruitment", name: "3. Student Recruitment", ...STUDENT_RECRUITMENT, audience: "student", program: "both" },
+  { id: "splash-student-registration-open", name: "4. Student Registration Open", ...SPLASH_STUDENT_REGISTRATION_OPEN, audience: "student", program: "Splash" },
+
+  // Week 5: Teacher Forms & Training (2/10-2/17)
+  { id: "splash-teacher-forms-orientation", name: "5. Teacher Forms & Orientation", ...SPLASH_TEACHER_FORMS_ORIENTATION, audience: "teacher", program: "Splash" },
+  { id: "splash-training-reminder", name: "6. Training Reminder", ...SPLASH_TRAINING_REMINDER, audience: "teacher", program: "Splash" },
+  { id: "splash-teacher-training-resources", name: "7. Teacher Training Resources", ...SPLASH_TEACHER_TRAINING_RESOURCES, audience: "teacher", program: "Splash" },
+
+  // Week 6: Student Registration Reminders (2/17-2/24)
+  { id: "splash-registration-due-tomorrow", name: "8. Registration Due Tomorrow", ...SPLASH_REGISTRATION_DUE_TOMORROW, audience: "student", program: "Splash" },
+
+  // Week 7: Final Preparations (2/24)
+  { id: "splash-printout-reminder", name: "9. Printout Submission Reminder", ...SPLASH_PRINTOUT_REMINDER, audience: "teacher", program: "Splash" },
+
+  // Day Before (2/27)
+  { id: "splash-student-logistics", name: "10. Student/Parent Logistics (2 days before)", ...SPLASH_STUDENT_LOGISTICS, audience: "parent", program: "Splash" },
+  { id: "splash-teacher-logistics", name: "11. Teacher Logistics (day before)", ...SPLASH_TEACHER_LOGISTICS, audience: "teacher", program: "Splash" },
+  { id: "splash-tomorrow-student", name: "12. Day Before - Students", ...SPLASH_TOMORROW_STUDENT, audience: "student", program: "Splash" },
+  { id: "splash-tomorrow-teacher", name: "13. Day Before - Teachers", ...SPLASH_TOMORROW_TEACHER, audience: "teacher", program: "Splash" },
+
+  // ===== SPROUT TEMPLATES (Chronological Order) =====
+
+  // Teacher Recruitment
+  { id: "teach-for-sprout", name: "1. Teach for Sprout", ...TEACH_FOR_SPROUT, audience: "teacher", program: "Sprout" },
+
+  // Student Registration
+  { id: "sprout-student-registration", name: "2. Student Registration Open", ...SPROUT_STUDENT_REGISTRATION, audience: "student", program: "Sprout" },
+
+  // Teacher Forms & Volunteer Recruitment
+  { id: "sprout-teacher-forms-orientation", name: "3. Teacher Forms & Orientation", ...SPROUT_TEACHER_FORMS_ORIENTATION, audience: "teacher", program: "Sprout" },
+  { id: "sprout-volunteer-invitation", name: "4. Volunteer Invitation", ...SPROUT_VOLUNTEER_INVITATION, audience: "volunteer", program: "Sprout" },
+
+  // Day Before
+  { id: "sprout-parent-logistics", name: "5. Parent Logistics (2 days before)", ...SPROUT_PARENT_LOGISTICS, audience: "parent", program: "Sprout" },
+  { id: "sprout-teacher-logistics", name: "6. Teacher Logistics (day before)", ...SPROUT_TEACHER_LOGISTICS, audience: "teacher", program: "Sprout" },
 ];
 
 // Date picker component
@@ -87,15 +117,15 @@ function DatePickerField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+      <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
       <input
         type="date"
         value={toDateInputValue(value)}
         onChange={(e) => onChange(fromDateInputValue(e.target.value))}
-        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full rounded-md border border-input bg-card text-foreground px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
       {computedFormats && value && (
-        <div className="mt-1 text-xs text-slate-500">
+        <div className="mt-1 text-xs text-muted-foreground">
           → {computedFormats.short}
         </div>
       )}
@@ -118,31 +148,39 @@ function Section({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
+    <div className="rounded-lg border border-border bg-card">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between px-3 py-2 text-left"
       >
-        <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <Icon className="h-4 w-4 text-slate-400" />
+        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Icon className="h-4 w-4 text-muted-foreground" />
           {title}
         </span>
-        <span className="text-xs text-slate-400">{isOpen ? "▲" : "▼"}</span>
+        <span className="text-xs text-muted-foreground">{isOpen ? "▲" : "▼"}</span>
       </button>
-      {isOpen && <div className="space-y-3 border-t border-slate-100 px-3 py-3">{children}</div>}
+      {isOpen && <div className="space-y-3 border-t border-border px-3 py-3">{children}</div>}
     </div>
   );
 }
 
 export function EmailTemplateForm() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [highlightVariables, setHighlightVariables] = useState(true);
+  const [highlightVariables, setHighlightVariables] = useState(false);
   const [editorContent, setEditorContent] = useState<string>("");
 
-  // Editable config state - start with first Splash config
+  // Profile export/import state
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [importedConfig, setImportedConfig] = useState<SemesterConfig | null>(null);
+  const [exportProfileName, setExportProfileName] = useState("");
+  const [exportDescription, setExportDescription] = useState("");
+  const [exportedBy, setExportedBy] = useState("");
+
+  // Editable config state - start with Spring 2026 custom config
   const [config, setConfig] = useState<SemesterConfig>(() => {
-    const defaultConfig = semesterConfigs.find(c => c.program === "Splash") ?? semesterConfigs[0];
+    const defaultConfig = semesterConfigs.find(c => c.id === "custom") ?? semesterConfigs[0];
     return { ...defaultConfig };
   });
 
@@ -156,7 +194,11 @@ export function EmailTemplateForm() {
     [config.eventDate1, config.eventDate2, isTwoDays]
   );
   const regDeadlineFormats = useMemo(() => computeDateFormats(config.registrationDeadline), [config.registrationDeadline]);
-  const teacherRegFormats = useMemo(() => computeDateFormats(config.teacherRegDeadline), [config.teacherRegDeadline]);
+  const teacherRegFakeFormats = useMemo(() => computeDateFormats(config.teacherRegDeadlineFake), [config.teacherRegDeadlineFake]);
+  const teacherRegRealFormats = useMemo(() => computeDateFormats(config.teacherRegDeadlineReal), [config.teacherRegDeadlineReal]);
+  const courseRevisionSoftFormats = useMemo(() => computeDateFormats(config.courseRevisionDeadlineSoft), [config.courseRevisionDeadlineSoft]);
+  const materialsSoftFormats = useMemo(() => computeDateFormats(config.materialsDeadlineSoft), [config.materialsDeadlineSoft]);
+  const materialsHardFormats = useMemo(() => computeDateFormats(config.materialsDeadlineHard), [config.materialsDeadlineHard]);
   const trainingFormats = useMemo(() => computeDateFormats(config.trainingDeadline), [config.trainingDeadline]);
   const printFormats = useMemo(() => computeDateFormats(config.printDeadline), [config.printDeadline]);
   const materialsFormats = useMemo(() => computeDateFormats(config.materialsDeadline), [config.materialsDeadline]);
@@ -167,7 +209,9 @@ export function EmailTemplateForm() {
       semester: "",
       semesterShort: "",
       seasonLetter: "",
-      shortYear: ""
+      shortYear: "",
+      season: "",
+      seasonLower: ""
     };
 
     const month = config.eventDate1.getMonth(); // 0-11
@@ -177,28 +221,35 @@ export function EmailTemplateForm() {
     // Jan-Jun = Spring, Jul-Dec = Fall
     const season = month >= 6 ? "Fall" : "Spring";
     const seasonLetter = season === "Fall" ? "F" : "S";
+    const seasonLower = season.toLowerCase();
 
     return {
       semester: `${season} ${year}`,
       semesterShort: `${season} '${shortYear}`,
       seasonLetter,
-      shortYear
+      shortYear,
+      season,
+      seasonLower
     };
   }, [config.eventDate1]);
 
   // Build computed template values for variable replacement
   const computedValues = useMemo(() => {
-    // Generate zoom sessions list
+    // Generate zoom sessions list with HTML formatting
     const zoomSessionsList = config.zoomSessions.map((session, index) => {
+      const sessionNum = index + 1;
       const parts = [
-        `${session.date} from ${session.time} - ${session.host}`,
-        session.zoomLink ? `Zoom Link: ${session.zoomLink}` : null,
-        `Meeting ID: ${session.meetingId}`,
-        `Passcode: ${session.passcode}`,
-        session.gcalLink ? `Click this link to add to your GCAL!: ${session.gcalLink}` : null
+        `<p><strong>Session ${sessionNum}:</strong> {{config.zoom${sessionNum}Date}} from {{config.zoom${sessionNum}Time}}</p>`,
+        `<ul>`,
+        `<li><strong>Host:</strong> {{config.zoom${sessionNum}Host}}</li>`,
+        session.zoomLink ? `<li><strong>Zoom Link:</strong> <a href="{{config.zoom${sessionNum}Link}}">Join Meeting</a></li>` : null,
+        `<li><strong>Meeting ID:</strong> {{config.zoom${sessionNum}MeetingId}}</li>`,
+        `<li><strong>Passcode:</strong> {{config.zoom${sessionNum}Passcode}}</li>`,
+        session.gcalLink ? `<li><strong>Add to Calendar:</strong> <a href="{{config.zoom${sessionNum}GcalLink}}">Google Calendar</a></li>` : null,
+        `</ul>`
       ].filter(Boolean);
       return parts.join('\n');
-    }).join('\n\n');
+    }).join('\n');
 
     // Generate dynamic director signatures
     const { seasonLetter, shortYear, semesterShort, semester } = computedSemester;
@@ -220,12 +271,15 @@ export function EmailTemplateForm() {
 
     const studentRegLink = `https://yale.learningu.org/learn/${programLower}.html`;
     const teacherRegLink = `https://yale.learningu.org/teach/${config.program}/${year}_${season}/teacherreg`;
+    const catalogLink = `https://yale.learningu.org/learn/${config.program}/${year}_${season}/catalog`;
 
     return {
       // Program info
       program: config.program,
       semester: computedSemester.semester,
       semesterShort: computedSemester.semesterShort,
+      season: computedSemester.season,
+      seasonLower: computedSemester.seasonLower,
       isTwoDays: isTwoDays.toString(),
 
       // Fixed times
@@ -241,7 +295,11 @@ export function EmailTemplateForm() {
       // Deadlines
       registrationDeadline: regDeadlineFormats?.short || "",
       registrationDeadlineFull: regDeadlineFormats?.full || "",
-      teacherRegDeadline: teacherRegFormats?.short || "",
+      teacherRegDeadlineFake: teacherRegFakeFormats?.short || "",
+      teacherRegDeadlineReal: teacherRegRealFormats?.short || "",
+      courseRevisionDeadlineSoft: courseRevisionSoftFormats?.short || "",
+      materialsDeadlineSoft: materialsSoftFormats?.short || "",
+      materialsDeadlineHard: materialsHardFormats?.short || "",
       trainingDeadline: trainingFormats?.withTime || "",
       printDeadline: printFormats?.short || "",
       materialsDeadline: materialsFormats?.casual || "",
@@ -257,12 +315,14 @@ export function EmailTemplateForm() {
       gradeRangeShort: config.gradeRangeShort,
       phone: config.phone,
       email: config.email,
+      directorName: config.directorName,
       directors,
       directorsTeam,
       directorsLong,
       websiteLink: config.websiteLink,
       studentRegLink,
       teacherRegLink,
+      catalogLink,
       certificationsFormLink: config.certificationsFormLink,
       materialsFormLink: config.materialsFormLink,
       budgetLink: config.budgetLink,
@@ -272,8 +332,24 @@ export function EmailTemplateForm() {
       pedagogyPacketLink: config.pedagogyPacketLink || "",
       teachingTipsLink: config.teachingTipsLink || "",
       zoomSessionsList,
+
+      // Hardcoded zoom session variables
+      zoom1Date: config.zoomSessions[0]?.date || "",
+      zoom1Time: config.zoomSessions[0]?.time || "",
+      zoom1Host: config.zoomSessions[0]?.host || "",
+      zoom1MeetingId: config.zoomSessions[0]?.meetingId || "",
+      zoom1Passcode: config.zoomSessions[0]?.passcode || "",
+      zoom1Link: config.zoomSessions[0]?.zoomLink || "",
+      zoom1GcalLink: config.zoomSessions[0]?.gcalLink || "",
+      zoom2Date: config.zoomSessions[1]?.date || "",
+      zoom2Time: config.zoomSessions[1]?.time || "",
+      zoom2Host: config.zoomSessions[1]?.host || "",
+      zoom2MeetingId: config.zoomSessions[1]?.meetingId || "",
+      zoom2Passcode: config.zoomSessions[1]?.passcode || "",
+      zoom2Link: config.zoomSessions[1]?.zoomLink || "",
+      zoom2GcalLink: config.zoomSessions[1]?.gcalLink || "",
     };
-  }, [config, isTwoDays, times, eventDateFormats, regDeadlineFormats, teacherRegFormats, trainingFormats, printFormats, materialsFormats, computedSemester]);
+  }, [config, isTwoDays, times, eventDateFormats, regDeadlineFormats, teacherRegFakeFormats, teacherRegRealFormats, courseRevisionSoftFormats, materialsSoftFormats, materialsHardFormats, trainingFormats, printFormats, materialsFormats, computedSemester]);
 
   // Apply variable substitution (with optional highlighting of substituted values)
   const substituteVariables = useCallback((text: string, highlight: boolean = false): string => {
@@ -384,8 +460,8 @@ export function EmailTemplateForm() {
               ...prev.zoomSessions.slice(2)
             ]
           : [
-              { date: formatZoomDate(zoom1Date), time: "7-7:30 PM", host: "", meetingId: "", passcode: "" },
-              { date: formatZoomDate(zoom2Date), time: "7-7:30 PM", host: "", meetingId: "", passcode: "" },
+              { date: formatZoomDate(zoom1Date), time: "7-7:30 PM", host: "", meetingId: "", passcode: "", zoomLink: "", gcalLink: "" },
+              { date: formatZoomDate(zoom2Date), time: "7-7:30 PM", host: "", meetingId: "", passcode: "", zoomLink: "", gcalLink: "" },
             ]
       }));
     }
@@ -407,18 +483,69 @@ export function EmailTemplateForm() {
     }));
   };
 
-  const addZoomSession = () => {
-    setConfig((prev) => ({
-      ...prev,
-      zoomSessions: [...prev.zoomSessions, { date: "", time: "7-7:30 PM", host: "", meetingId: "", passcode: "" }],
-    }));
+  // Profile Export/Import handlers
+  const handleExportClick = () => {
+    const validation = validateConfig(config);
+    if (!validation.valid) {
+      alert(`Cannot export incomplete profile:\n\n${validation.errors.join('\n')}`);
+      return;
+    }
+    setShowExportModal(true);
   };
 
-  const removeZoomSession = (index: number) => {
-    setConfig((prev) => ({
-      ...prev,
-      zoomSessions: prev.zoomSessions.filter((_, i) => i !== index),
-    }));
+  const handleExportConfirm = () => {
+    if (!exportProfileName.trim()) {
+      alert("Please enter a profile name");
+      return;
+    }
+
+    exportProfile(config, {
+      profileName: exportProfileName,
+      description: exportDescription || undefined,
+      exportedBy: exportedBy || undefined,
+    });
+
+    setShowExportModal(false);
+    setExportProfileName("");
+    setExportDescription("");
+    setExportedBy("");
+  };
+
+  const handleImportClick = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        const validation = validateImportedProfile(content);
+
+        if (!validation.valid) {
+          alert(`Cannot import profile:\n\n${validation.errors.join('\n')}`);
+          return;
+        }
+
+        if (validation.profile) {
+          const deserialized = deserializeConfig(validation.profile.config);
+          setImportedConfig(deserialized);
+          setShowImportConfirm(true);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const handleImportConfirm = () => {
+    if (importedConfig) {
+      setConfig(importedConfig);
+      setImportedConfig(null);
+      setShowImportConfirm(false);
+    }
   };
 
   // Filter templates by program
@@ -428,9 +555,9 @@ export function EmailTemplateForm() {
     );
 
   return (
-    <div className="flex h-full flex-col bg-slate-50">
+    <div className="flex h-full flex-col bg-muted ">
       {/* Top Bar */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border  bg-card  px-4 py-3">
         <div className="flex items-center gap-3">
           {/* Program Selector */}
           <Select value={config.program} onValueChange={(v) => handleProgramChange(v as "Splash" | "Sprout")}>
@@ -444,21 +571,21 @@ export function EmailTemplateForm() {
           </Select>
 
           {/* Auto-computed Semester Display */}
-          <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-            <Calendar className="h-4 w-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-700">
+          <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">
               {computedSemester.semester || "No date set"}
             </span>
           </div>
 
           {/* Event Date Picker */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-slate-600">Event Date:</label>
+            <label className="text-xs font-medium text-muted-foreground">Event Date:</label>
             <input
               type="date"
               value={toDateInputValue(config.eventDate1)}
               onChange={(e) => handleEventDate1Change(fromDateInputValue(e.target.value))}
-              className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="rounded-md border border-input bg-card text-foreground px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -468,17 +595,17 @@ export function EmailTemplateForm() {
               <SelectValue placeholder="Select template..." />
             </SelectTrigger>
             <SelectContent>
-              <div className="px-2 py-1 text-xs font-semibold text-slate-500">Teachers</div>
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">Teachers</div>
               {availableTemplates.filter((t) => t.audience === "teacher").map((t) => (
                 <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
               ))}
-              <div className="px-2 py-1 text-xs font-semibold text-slate-500">Students/Parents</div>
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">Students/Parents</div>
               {availableTemplates.filter((t) => t.audience === "student" || t.audience === "parent").map((t) => (
                 <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
               ))}
               {availableTemplates.filter((t) => t.audience === "volunteer").length > 0 && (
                 <>
-                  <div className="px-2 py-1 text-xs font-semibold text-slate-500">Volunteers</div>
+                  <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">Volunteers</div>
                   {availableTemplates.filter((t) => t.audience === "volunteer").map((t) => (
                     <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                   ))}
@@ -488,17 +615,43 @@ export function EmailTemplateForm() {
             </Select>
           </div>
 
-        {/* Highlight Toggle */}
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5">
-          <input
-            type="checkbox"
-            checked={highlightVariables}
-            onChange={(e) => setHighlightVariables(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300"
-          />
-          <Highlighter className="h-4 w-4 text-amber-500" />
-          <span className="text-sm text-slate-600">Highlight Variables</span>
-            </label>
+        {/* Export/Import Buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportClick}
+            className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent"
+          >
+            <Download className="h-4 w-4" />
+            <span>Export Profile</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleImportClick}
+            className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent"
+          >
+            <Upload className="h-4 w-4" />
+            <span>Import Profile</span>
+          </button>
+
+          {/* Highlight Press and Hold */}
+          <button
+            type="button"
+            className={`flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 transition-colors ${
+              highlightVariables ? "bg-amber-100 border-amber-300" : "bg-muted"
+            }`}
+            onMouseDown={() => setHighlightVariables(true)}
+            onMouseUp={() => setHighlightVariables(false)}
+            onMouseLeave={() => setHighlightVariables(false)}
+            onTouchStart={() => setHighlightVariables(true)}
+            onTouchEnd={() => setHighlightVariables(false)}
+          >
+            <Highlighter className={`h-4 w-4 ${highlightVariables ? "text-amber-600" : "text-amber-500"}`} />
+            <span className={`text-sm ${highlightVariables ? "text-amber-700 font-medium" : "text-muted-foreground"}`}>
+              {highlightVariables ? "Highlighting..." : "Hold to Highlight"}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -515,7 +668,7 @@ export function EmailTemplateForm() {
             {isTwoDays && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">2-Day Event</span>
             )}
-            <span className="ml-auto text-xs text-slate-500">
+            <span className="ml-auto text-xs text-muted-foreground">
               {times.program}
             </span>
           </div>
@@ -554,7 +707,7 @@ export function EmailTemplateForm() {
               />
 
               {eventDateFormats && (
-                <div className="rounded bg-slate-50 p-2 text-xs text-slate-600">
+                <div className="rounded bg-muted p-2 text-xs text-muted-foreground">
                   <strong>Combined:</strong> {eventDateFormats.range}
                 </div>
               )}
@@ -573,10 +726,34 @@ export function EmailTemplateForm() {
               computedFormats={regDeadlineFormats}
             />
             <DatePickerField
-              label="Teacher Registration Deadline"
-              value={config.teacherRegDeadline}
-              onChange={(d) => updateConfig("teacherRegDeadline", d)}
-              computedFormats={teacherRegFormats}
+              label="Teacher Registration Deadline (fake)"
+              value={config.teacherRegDeadlineFake}
+              onChange={(d) => updateConfig("teacherRegDeadlineFake", d)}
+              computedFormats={teacherRegFakeFormats}
+            />
+            <DatePickerField
+              label="Teacher Registration Deadline (real)"
+              value={config.teacherRegDeadlineReal}
+              onChange={(d) => updateConfig("teacherRegDeadlineReal", d)}
+              computedFormats={teacherRegRealFormats}
+            />
+            <DatePickerField
+              label="Course Revision Deadline (soft)"
+              value={config.courseRevisionDeadlineSoft}
+              onChange={(d) => updateConfig("courseRevisionDeadlineSoft", d)}
+              computedFormats={courseRevisionSoftFormats}
+            />
+            <DatePickerField
+              label="Materials/Forms Deadline (soft/communicated)"
+              value={config.materialsDeadlineSoft}
+              onChange={(d) => updateConfig("materialsDeadlineSoft", d)}
+              computedFormats={materialsSoftFormats}
+            />
+            <DatePickerField
+              label="Materials/Forms Deadline (hard)"
+              value={config.materialsDeadlineHard}
+              onChange={(d) => updateConfig("materialsDeadlineHard", d)}
+              computedFormats={materialsHardFormats}
             />
             <DatePickerField
               label="Training/Certifications Deadline"
@@ -591,7 +768,7 @@ export function EmailTemplateForm() {
               computedFormats={printFormats}
             />
             <DatePickerField
-              label="Course Materials Deadline"
+              label="Course Materials Deadline (deprecated)"
               value={config.materialsDeadline}
               onChange={(d) => updateConfig("materialsDeadline", d)}
               computedFormats={materialsFormats}
@@ -601,7 +778,7 @@ export function EmailTemplateForm() {
           {/* Locations */}
           <Section title="Locations" icon={MapPin} defaultOpen={false}>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Admin HQ Room</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Admin HQ Room</label>
               <Input
                 value={config.adminHQ}
                 onChange={(e) => updateConfig("adminHQ", e.target.value)}
@@ -610,7 +787,7 @@ export function EmailTemplateForm() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Buildings (short)</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Buildings (short)</label>
               <Input
                 value={config.buildingsShort}
                 onChange={(e) => updateConfig("buildingsShort", e.target.value)}
@@ -623,15 +800,24 @@ export function EmailTemplateForm() {
           {/* Team */}
           <Section title="Directors & Contact" icon={Users} defaultOpen={false}>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Auto-generated Signatures</label>
-              <div className="space-y-1 rounded bg-slate-50 p-2 text-xs text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Director Name</label>
+              <Input
+                value={config.directorName}
+                onChange={(e) => updateConfig("directorName", e.target.value)}
+                className="text-sm"
+                placeholder="Your Name"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Auto-generated Signatures</label>
+              <div className="space-y-1 rounded bg-muted p-2 text-xs text-muted-foreground">
                 <div><span className="font-medium">Short:</span> {computedValues.directors || "Set event date first"}</div>
                 <div><span className="font-medium">Team:</span> {computedValues.directorsTeam || "Set event date first"}</div>
                 <div><span className="font-medium">Long:</span> {computedValues.directorsLong || "Set event date first"}</div>
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Phone</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Phone</label>
               <Input
                 value={config.phone}
                 onChange={(e) => updateConfig("phone", e.target.value)}
@@ -643,20 +829,24 @@ export function EmailTemplateForm() {
           {/* Links */}
           <Section title="Links" icon={Link2} defaultOpen={false}>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Auto-generated Registration Links</label>
-              <div className="space-y-1 rounded bg-slate-50 p-2 text-xs text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Auto-generated Links</label>
+              <div className="space-y-1 rounded bg-muted p-2 text-xs text-muted-foreground">
                 <div>
-                  <span className="font-medium">Student:</span>
+                  <span className="font-medium">Student Registration:</span>
                   <div className="mt-0.5 break-all">{computedValues.studentRegLink}</div>
                 </div>
                 <div>
-                  <span className="font-medium">Teacher:</span>
+                  <span className="font-medium">Teacher Registration:</span>
                   <div className="mt-0.5 break-all">{computedValues.teacherRegLink}</div>
+                </div>
+                <div>
+                  <span className="font-medium">Class Catalog:</span>
+                  <div className="mt-0.5 break-all">{computedValues.catalogLink}</div>
                 </div>
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Certifications Form</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Certifications Form</label>
               <Input
                 value={config.certificationsFormLink}
                 onChange={(e) => updateConfig("certificationsFormLink", e.target.value)}
@@ -664,10 +854,58 @@ export function EmailTemplateForm() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Materials Form</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Materials Form</label>
               <Input
                 value={config.materialsFormLink}
                 onChange={(e) => updateConfig("materialsFormLink", e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Budget Form</label>
+              <Input
+                value={config.budgetLink}
+                onChange={(e) => updateConfig("budgetLink", e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Volunteer Form</label>
+              <Input
+                value={config.volunteerFormLink || ""}
+                onChange={(e) => updateConfig("volunteerFormLink", e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">GroupMe Link</label>
+              <Input
+                value={config.groupMeLink || ""}
+                onChange={(e) => updateConfig("groupMeLink", e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Training Slides</label>
+              <Input
+                value={config.slidesLink || ""}
+                onChange={(e) => updateConfig("slidesLink", e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Pedagogy Packet</label>
+              <Input
+                value={config.pedagogyPacketLink || ""}
+                onChange={(e) => updateConfig("pedagogyPacketLink", e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Teaching Tips</label>
+              <Input
+                value={config.teachingTipsLink || ""}
+                onChange={(e) => updateConfig("teachingTipsLink", e.target.value)}
                 className="text-sm"
               />
             </div>
@@ -676,64 +914,120 @@ export function EmailTemplateForm() {
           {/* Zoom Sessions */}
           <Section title="Zoom Sessions" icon={Video} defaultOpen={false}>
             <div className="mb-2 rounded bg-blue-50 px-2 py-1.5 text-xs text-blue-700">
-              First 2 session dates auto-populated (event date - 6 and - 5 days).
+              Session dates auto-populated (event date - 6 and - 5 days).
             </div>
-            <div className="mb-2 flex justify-end">
-              <Button variant="outline" size="sm" onClick={addZoomSession} className="h-7 text-xs">
-                + Add Session
-              </Button>
-            </div>
-            {config.zoomSessions.map((session, index) => (
-              <div key={index} className="rounded border border-slate-200 bg-slate-50 p-2">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-600">Session {index + 1}</span>
-            <Button
-                    variant="ghost"
-              size="sm"
-                    onClick={() => removeZoomSession(index)}
-                    className="h-5 px-2 text-xs text-red-500"
-                  >
-                    Remove
-            </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    value={session.date}
-                    onChange={(e) => updateZoomSession(index, "date", e.target.value)}
-                    placeholder="Date"
-                    className="text-xs"
-                  />
-                  <Input
-                    value={session.host}
-                    onChange={(e) => updateZoomSession(index, "host", e.target.value)}
-                    placeholder="Host"
-                    className="text-xs"
-                  />
-                  <Input
-                    value={session.meetingId}
-                    onChange={(e) => updateZoomSession(index, "meetingId", e.target.value)}
-                    placeholder="Meeting ID"
-                    className="text-xs"
-                  />
-                  <Input
-                    value={session.passcode}
-                    onChange={(e) => updateZoomSession(index, "passcode", e.target.value)}
-                    placeholder="Passcode"
-                    className="text-xs"
-                  />
-                </div>
+
+            {/* Session 1 */}
+            <div className="mb-3 rounded border border-border bg-muted p-2">
+              <div className="mb-2">
+                <span className="text-xs font-medium text-muted-foreground">Session 1</span>
               </div>
-            ))}
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  value={config.zoomSessions[0]?.date || ""}
+                  onChange={(e) => updateZoomSession(0, "date", e.target.value)}
+                  placeholder="Date"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[0]?.time || ""}
+                  onChange={(e) => updateZoomSession(0, "time", e.target.value)}
+                  placeholder="Time (e.g., 7-7:30 PM)"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[0]?.host || ""}
+                  onChange={(e) => updateZoomSession(0, "host", e.target.value)}
+                  placeholder="Host"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[0]?.meetingId || ""}
+                  onChange={(e) => updateZoomSession(0, "meetingId", e.target.value)}
+                  placeholder="Meeting ID"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[0]?.passcode || ""}
+                  onChange={(e) => updateZoomSession(0, "passcode", e.target.value)}
+                  placeholder="Passcode"
+                  className="text-xs col-span-2"
+                />
+                <Input
+                  value={config.zoomSessions[0]?.zoomLink || ""}
+                  onChange={(e) => updateZoomSession(0, "zoomLink", e.target.value)}
+                  placeholder="Zoom Link"
+                  className="text-xs col-span-2"
+                />
+                <Input
+                  value={config.zoomSessions[0]?.gcalLink || ""}
+                  onChange={(e) => updateZoomSession(0, "gcalLink", e.target.value)}
+                  placeholder="Google Calendar Link"
+                  className="text-xs col-span-2"
+                />
+              </div>
+            </div>
+
+            {/* Session 2 */}
+            <div className="rounded border border-border bg-muted p-2">
+              <div className="mb-2">
+                <span className="text-xs font-medium text-muted-foreground">Session 2</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  value={config.zoomSessions[1]?.date || ""}
+                  onChange={(e) => updateZoomSession(1, "date", e.target.value)}
+                  placeholder="Date"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[1]?.time || ""}
+                  onChange={(e) => updateZoomSession(1, "time", e.target.value)}
+                  placeholder="Time (e.g., 7-7:30 PM)"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[1]?.host || ""}
+                  onChange={(e) => updateZoomSession(1, "host", e.target.value)}
+                  placeholder="Host"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[1]?.meetingId || ""}
+                  onChange={(e) => updateZoomSession(1, "meetingId", e.target.value)}
+                  placeholder="Meeting ID"
+                  className="text-xs"
+                />
+                <Input
+                  value={config.zoomSessions[1]?.passcode || ""}
+                  onChange={(e) => updateZoomSession(1, "passcode", e.target.value)}
+                  placeholder="Passcode"
+                  className="text-xs col-span-2"
+                />
+                <Input
+                  value={config.zoomSessions[1]?.zoomLink || ""}
+                  onChange={(e) => updateZoomSession(1, "zoomLink", e.target.value)}
+                  placeholder="Zoom Link"
+                  className="text-xs col-span-2"
+                />
+                <Input
+                  value={config.zoomSessions[1]?.gcalLink || ""}
+                  onChange={(e) => updateZoomSession(1, "gcalLink", e.target.value)}
+                  placeholder="Google Calendar Link"
+                  className="text-xs col-span-2"
+                />
+              </div>
+            </div>
           </Section>
             </div>
 
         {/* Right Panel - Editor */}
-        <div className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
           {/* Subject Line */}
           {currentTemplate && (
-            <div className="border-b border-slate-200 bg-slate-50 px-4 py-2">
-              <div className="text-xs font-medium uppercase tracking-wider text-slate-400">Subject</div>
-              <div className="mt-1 font-medium text-slate-900">{generatedSubject}</div>
+            <div className="border-b border-border bg-muted px-4 py-2">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Subject</div>
+              <div className="mt-1 font-medium text-foreground">{generatedSubject}</div>
             </div>
           )}
 
@@ -747,7 +1041,7 @@ export function EmailTemplateForm() {
                 className="h-full"
               />
             ) : (
-              <div className="flex h-full flex-col items-center justify-center text-slate-400">
+              <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
                 <Calendar className="mb-3 h-12 w-12 opacity-20" />
                 <p className="text-sm">Select a template to begin editing</p>
               </div>
@@ -755,6 +1049,89 @@ export function EmailTemplateForm() {
           </div>
         </div>
       </div>
+
+      {/* Export Profile Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-xl ">
+            <h2 className="mb-4 text-xl font-semibold text-foreground ">Export Profile</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground ">
+                  Profile Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={exportProfileName}
+                  onChange={(e) => setExportProfileName(e.target.value)}
+                  placeholder="e.g., Spring 2026 Splash"
+                  className=" "
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground ">
+                  Exported By (optional)
+                </label>
+                <Input
+                  value={exportedBy}
+                  onChange={(e) => setExportedBy(e.target.value)}
+                  placeholder="Your name"
+                  className=" "
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground ">
+                  Description (optional)
+                </label>
+                <textarea
+                  value={exportDescription}
+                  onChange={(e) => setExportDescription(e.target.value)}
+                  placeholder="Notes about this configuration..."
+                  rows={3}
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500   "
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowExportModal(false);
+                  setExportProfileName("");
+                  setExportDescription("");
+                  setExportedBy("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleExportConfirm}>Export</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Confirmation Modal */}
+      {showImportConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-xl ">
+            <h2 className="mb-4 text-xl font-semibold text-foreground ">Confirm Import</h2>
+            <p className="mb-6 text-sm text-muted-foreground ">
+              This will replace your current configuration with the imported profile. Are you sure?
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowImportConfirm(false);
+                  setImportedConfig(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleImportConfirm}>Import</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

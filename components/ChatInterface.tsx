@@ -132,15 +132,15 @@ export function ChatInterface() {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-900">
+              <div className="rounded-lg bg-card border border-border px-4 py-3 text-card-foreground">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" />
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-foreground/60" />
                   <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                    className="h-2 w-2 animate-bounce rounded-full bg-foreground/60"
                     style={{ animationDelay: "0.1s" }}
                   />
                   <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                    className="h-2 w-2 animate-bounce rounded-full bg-foreground/60"
                     style={{ animationDelay: "0.2s" }}
                   />
                 </div>
@@ -151,7 +151,7 @@ export function ChatInterface() {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t bg-white p-4">
+      <div className="border-t bg-background p-4">
         <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
           <div className="flex gap-2">
             <Input
@@ -159,7 +159,7 @@ export function ChatInterface() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask a question about Splash..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 bg-card text-foreground"
             />
             <Button type="submit" disabled={isLoading || !input.trim()}>
               <Send className="h-4 w-4" />

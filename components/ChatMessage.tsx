@@ -23,12 +23,13 @@ export function ChatMessage({ role, content, sources }: ChatMessageProps) {
           "max-w-[80%] rounded-lg px-4 py-3",
           role === "user"
             ? "bg-yaleBlue text-white"
-            : "bg-gray-100 text-gray-900"
+            : "bg-card border border-border"
         )}
       >
         <div
           className={cn(
             "prose prose-sm max-w-none",
+            role === "user" ? "text-white" : "text-foreground",
             role === "user" && "prose-invert"
           )}
         >
@@ -41,7 +42,7 @@ export function ChatMessage({ role, content, sources }: ChatMessageProps) {
                     "font-medium underline decoration-2 hover:no-underline transition-colors",
                     role === "user"
                       ? "text-blue-200 hover:text-blue-100"
-                      : "text-blue-600 hover:text-blue-700"
+                      : "text-blue-500 hover:text-blue-400 dark:text-blue-400 dark:hover:text-blue-300"
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -59,7 +60,7 @@ export function ChatMessage({ role, content, sources }: ChatMessageProps) {
                   {...props}
                   className={cn(
                     "rounded px-1 py-0.5 font-mono text-sm",
-                    role === "user" ? "bg-blue-800" : "bg-gray-200"
+                    role === "user" ? "bg-blue-800" : "bg-secondary"
                   )}
                 />
               ),
@@ -69,7 +70,7 @@ export function ChatMessage({ role, content, sources }: ChatMessageProps) {
           </ReactMarkdown>
         </div>
         {sources && sources.length > 0 && (
-          <div className="mt-3 border-t border-gray-300 pt-2 text-xs text-gray-600">
+          <div className="mt-3 border-t border-border pt-2 text-xs text-muted-foreground">
             <p className="font-semibold">Sources:</p>
             <ul className="mt-1 space-y-1">
               {sources.map((source, idx) => (

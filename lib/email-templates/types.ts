@@ -22,10 +22,14 @@ export interface SemesterConfig {
 
   // Deadlines (stored as Date objects)
   registrationDeadline: Date | null;
-  teacherRegDeadline: Date | null;
+  teacherRegDeadlineFake: Date | null;  // Fake deadline communicated in most emails
+  teacherRegDeadlineReal: Date | null;  // Real deadline (a few days later, used in extension email)
+  courseRevisionDeadlineSoft: Date | null;  // Soft deadline for teachers to revise courses
+  materialsDeadlineSoft: Date | null;  // Soft/communicated deadline for course materials & forms
+  materialsDeadlineHard: Date | null;  // Hard deadline for course materials & forms
   trainingDeadline: Date | null;
   printDeadline: Date | null;
-  materialsDeadline: Date | null;
+  materialsDeadline: Date | null;  // Deprecated - use materialsDeadlineSoft instead
 
   // Locations
   adminHQ: string;               // "LC 104" or "LC 105"
@@ -44,6 +48,7 @@ export interface SemesterConfig {
   email: string;                 // "yalesplash@gmail.com"
 
   // Team / Directors (various formats used in emails)
+  directorName: string;          // Individual director's name for email signatures
   directors: string;             // "F25 Splash Directors" (short signature)
   directorsTeam: string;         // "Fall Splash '25 Directors"
   directorsLong: string;         // "Splash Fall 2025 Directors"
@@ -77,6 +82,21 @@ export interface EmailTemplate {
 }
 
 // Computed values interface (derived from SemesterConfig + date-utils)
+// Profile export/import types
+export interface ProfileMetadata {
+  profileName: string;
+  description?: string;
+  exportedAt: string;
+  exportedBy?: string;
+  program: "Splash" | "Sprout";
+  semester: string;
+}
+
+export interface SemesterProfile {
+  metadata: ProfileMetadata;
+  config: SemesterConfig;
+}
+
 export interface ComputedTemplateValues {
   // Program info
   program: string;
@@ -97,11 +117,15 @@ export interface ComputedTemplateValues {
   // Deadline formats
   registrationDeadline: string;
   registrationDeadlineFull: string;
-  teacherRegDeadline: string;
+  teacherRegDeadlineFake: string;      // Fake deadline (use in most emails)
+  teacherRegDeadlineReal: string;      // Real deadline (use in extension email)
+  courseRevisionDeadlineSoft: string;  // Soft course revision deadline
+  materialsDeadlineSoft: string;       // Soft materials deadline
+  materialsDeadlineHard: string;       // Hard materials deadline
   trainingDeadline: string;
   trainingDeadlineFull: string;
   printDeadline: string;
-  materialsDeadline: string;
+  materialsDeadline: string;           // Deprecated - for backwards compatibility
 
   // All other string fields pass through
   adminHQ: string;
@@ -120,6 +144,7 @@ export interface ComputedTemplateValues {
   websiteLink: string;
   studentRegLink: string;
   teacherRegLink: string;
+  catalogLink: string;
   certificationsFormLink: string;
   materialsFormLink: string;
   budgetLink: string;

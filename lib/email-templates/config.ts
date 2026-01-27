@@ -14,11 +14,15 @@ export const semesterConfigs: SemesterConfig[] = [
     sameWeekend: false,
 
     // Deadlines
-    registrationDeadline: new Date(2025, 9, 1),    // October 1
-    teacherRegDeadline: new Date(2025, 8, 15),     // September 15
-    trainingDeadline: new Date(2025, 8, 27),       // September 27
-    printDeadline: new Date(2025, 9, 2),           // October 2
-    materialsDeadline: new Date(2025, 9, 1),       // October 1
+    registrationDeadline: new Date(2025, 9, 1),        // October 1
+    teacherRegDeadlineFake: new Date(2025, 8, 15),     // September 15 (communicated deadline)
+    teacherRegDeadlineReal: new Date(2025, 8, 17),     // September 17 (real deadline, 2 days later)
+    courseRevisionDeadlineSoft: new Date(2025, 8, 20), // September 20 (soft course revision)
+    materialsDeadlineSoft: new Date(2025, 8, 27),      // September 27 (communicated materials deadline)
+    materialsDeadlineHard: new Date(2025, 8, 30),      // September 30 (hard materials deadline)
+    trainingDeadline: new Date(2025, 8, 27),           // September 27
+    printDeadline: new Date(2025, 9, 2),               // October 2
+    materialsDeadline: new Date(2025, 8, 27),          // September 27 (deprecated)
 
     // Locations
     adminHQ: "LC 104",
@@ -37,6 +41,7 @@ export const semesterConfigs: SemesterConfig[] = [
     email: "yalesplash@gmail.com",
 
     // Directors
+    directorName: "",
     directors: "F25 Splash Directors",
     directorsTeam: "Fall Splash '25 Directors",
     directorsLong: "Splash Fall 2025 Directors",
@@ -87,11 +92,15 @@ export const semesterConfigs: SemesterConfig[] = [
     sameWeekend: true,
 
     // Deadlines
-    registrationDeadline: new Date(2025, 10, 12),   // November 12
-    teacherRegDeadline: new Date(2025, 9, 22),      // October 22
-    trainingDeadline: new Date(2025, 10, 7),        // November 7
-    printDeadline: new Date(2025, 10, 13),          // November 13
-    materialsDeadline: new Date(2025, 10, 12),      // November 12
+    registrationDeadline: new Date(2025, 10, 12),       // November 12
+    teacherRegDeadlineFake: new Date(2025, 9, 22),      // October 22 (communicated deadline)
+    teacherRegDeadlineReal: new Date(2025, 9, 24),      // October 24 (real deadline, 2 days later)
+    courseRevisionDeadlineSoft: new Date(2025, 10, 1),  // November 1 (soft course revision)
+    materialsDeadlineSoft: new Date(2025, 10, 7),       // November 7 (communicated materials deadline)
+    materialsDeadlineHard: new Date(2025, 10, 10),      // November 10 (hard materials deadline)
+    trainingDeadline: new Date(2025, 10, 7),            // November 7
+    printDeadline: new Date(2025, 10, 13),              // November 13
+    materialsDeadline: new Date(2025, 10, 7),           // November 7 (deprecated)
 
     // Locations
     adminHQ: "LC 105",
@@ -110,6 +119,7 @@ export const semesterConfigs: SemesterConfig[] = [
     email: "yalesplash@gmail.com",
 
     // Directors
+    directorName: "",
     directors: "F25 Sprout Directors",
     directorsTeam: "Fall Sprout '25 Directors",
     directorsLong: "Sprout Fall 2025 Directors",
@@ -152,21 +162,25 @@ export const semesterConfigs: SemesterConfig[] = [
     semesterShort: "Spring '26",
 
     // Event Dates
-    eventDate1: null,
+    eventDate1: new Date(2026, 1, 28),  // February 28, 2026 (Program Day)
     eventDate2: null,
-    sameWeekend: true,
+    sameWeekend: false,
 
     // Deadlines
-    registrationDeadline: null,
-    teacherRegDeadline: null,
-    trainingDeadline: null,
-    printDeadline: null,
-    materialsDeadline: null,
+    registrationDeadline: new Date(2026, 1, 25),        // February 25 (Student reg closes)
+    teacherRegDeadlineFake: new Date(2026, 0, 24),      // January 24 (fake teacher deadline)
+    teacherRegDeadlineReal: new Date(2026, 0, 26),      // January 26 (real teacher deadline)
+    courseRevisionDeadlineSoft: new Date(2026, 1, 15),  // February 15 (soft course revision)
+    materialsDeadlineSoft: new Date(2026, 1, 16),       // February 16 (communicated materials deadline)
+    materialsDeadlineHard: new Date(2026, 1, 20),       // February 20 (hard materials deadline)
+    trainingDeadline: new Date(2026, 1, 16),            // February 16 (same as materials soft)
+    printDeadline: new Date(2026, 1, 27),               // February 27 (day before program)
+    materialsDeadline: new Date(2026, 1, 16),           // February 16 (deprecated, use materialsDeadlineSoft)
 
     // Locations
     adminHQ: "LC 104",
-    buildings: "",
-    buildingsShort: "",
+    buildings: "Linsly-Chittenden Hall (\"LC\" — 63 High Street), and William L. Harkness Hall (\"WLH\" — 100 Wall Street)",
+    buildingsShort: "LC and WLH",
     dropoff: "Phelps Gate (344 College St, New Haven, CT 06511)",
 
     // Costs
@@ -180,6 +194,7 @@ export const semesterConfigs: SemesterConfig[] = [
     email: "yalesplash@gmail.com",
 
     // Directors
+    directorName: "",
     directors: "",
     directorsTeam: "",
     directorsLong: "",
@@ -191,9 +206,33 @@ export const semesterConfigs: SemesterConfig[] = [
     certificationsFormLink: "",
     materialsFormLink: "",
     budgetLink: "",
+    volunteerFormLink: "",
+    groupMeLink: "",
+
+    // Training Resources Links
+    slidesLink: "https://docs.google.com/presentation/d/1ZMy-LPn3FGsu8jJKeyfYGUx9hw72gMQpj-pZrcyBgIc/edit?usp=sharing",
+    pedagogyPacketLink: "https://docs.google.com/document/d/10JgOvvLuFIjn_Sej3Mw2uMON4tmzSQdH6hAV9AH88T8/edit?usp=sharing",
+    teachingTipsLink: "https://docs.google.com/document/d/1fIymsNIU7X9ukiJW7oVQarJP6bEBcQWxNXeKlg9DSCI/edit?usp=sharing",
 
     // Zoom Sessions
-    zoomSessions: [],
+    zoomSessions: [
+      {
+        date: "Sunday, February 22nd",
+        time: "7-7:30 PM",
+        host: "TBD",
+        meetingId: "",
+        passcode: "",
+        zoomLink: "",
+      },
+      {
+        date: "Monday, February 23rd",
+        time: "7-7:30 PM",
+        host: "TBD",
+        meetingId: "",
+        passcode: "",
+        zoomLink: "",
+      },
+    ],
   },
 ];
 

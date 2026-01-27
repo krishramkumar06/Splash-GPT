@@ -18,6 +18,11 @@ export { SPLASH_TEACHER_FORMS_ORIENTATION } from "./splash-teacher-forms-orienta
 export { SPLASH_STUDENT_REGISTRATION_OPEN } from "./splash-student-registration-open";
 export { SPLASH_PRINTOUT_REMINDER } from "./splash-printout-reminder";
 
+// Universal Templates (both Splash and Sprout)
+export { TEACH_FOR_SPLASH_RECRUITMENT } from "./teach-for-splash";
+export { TEACHER_DEADLINE_EXTENSION } from "./teacher-deadline-extension";
+export { STUDENT_RECRUITMENT } from "./student-recruitment";
+
 // Template type
 export interface EmailTemplate {
   subject: string;

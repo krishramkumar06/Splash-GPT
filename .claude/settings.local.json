@@ -5,7 +5,16 @@
       "Bash(npm install)",
       "Bash(npx shadcn@latest init:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(grep:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(PORT=3001 npm run dev:*)",
+      "Bash(git worktree:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nImplement dark mode and fix all theme-related issues\n\n- Updated dark mode color palette to navy-blue theme with proper contrast\n- Fixed chat message visibility \\(white text for assistant responses in dark mode\\)\n- Fixed user message text to always be white in both light and dark modes\n- Updated all input and select components to use theme-aware backgrounds\n- Fixed date picker styling for dark mode with inverted icon\n- Added bold text color inheritance in ProseMirror editor\n- Systematically replaced all hardcoded slate colors with CSS variables\n- Updated EmailTemplateForm, RichTextEditor, ChatInterface, ChatMessage components\n- Added ThemeProvider component for theme management\n- Added new email templates: student-recruitment, teach-for-splash, teacher-deadline-extension\n- Added profile utility functions\n- Updated Spring 2026 configuration with default building values\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []
