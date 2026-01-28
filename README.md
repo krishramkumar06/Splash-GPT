@@ -2,12 +2,25 @@
 
 A Next.js 14 RAG (Retrieval-Augmented Generation) chatbot application for Yale Splash administrators and volunteers. This tool helps users quickly find information from documentation and guides while managing the Splash event.
 
+## Recent Updates
+
+- ✨ **Dark Mode**: Complete dark mode implementation with navy-blue theme
+- 🎨 **Theme System**: Comprehensive CSS variable-based theming for consistent styling
+- 📝 **Enhanced Editor**: Improved rich text editor with better dark mode support
+- 💾 **Profile Management**: Import/export functionality for template configurations
+- 🗓️ **Spring 2026 Templates**: Pre-configured templates with Yale Splash Spring 2026 dates
+- 🐛 **Bug Fixes**: Resolved text visibility issues, input field styling, and theme consistency
+
 ## Features
 
 - **💬 Chat Interface**: Ask questions and get answers from the knowledge base with source citations
-- **✉️ Email Templates**: Generate pre-formatted emails for teachers, parents, and students
+- **✉️ Email Templates**: Generate and customize pre-formatted emails for teachers, parents, and students
+- **🎨 Dark Mode**: Full dark mode support with navy-blue theme across the entire application
+- **📝 Rich Text Editor**: Tiptap-powered WYSIWYG editor with formatting, tables, links, and color customization
+- **📋 Profile Import/Export**: Save and load email template configurations as JSON profiles
 - **🔍 Semantic Search**: GPT-powered document chunking and vector search via Pinecone
 - **⚡ Streaming Responses**: Real-time responses using GPT-4o-mini
+- **🗓️ Template Management**: Pre-configured templates for Spring 2026 with customizable dates and locations
 
 ## Tech Stack
 
@@ -108,7 +121,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │   ├── ChatInterface.tsx       # Main chat UI
 │   ├── ChatMessage.tsx         # Message bubble component
 │   ├── Sidebar.tsx             # Navigation sidebar
-│   ├── EmailTemplateForm.tsx   # Email template form
+│   ├── EmailTemplateForm.tsx   # Email template form with profile management
+│   ├── RichTextEditor.tsx      # Tiptap rich text editor
+│   ├── ThemeProvider.tsx       # Dark mode theme provider
 │   └── ui/                     # shadcn/ui components
 ├── lib/
 │   ├── pinecone.ts             # Pinecone client
@@ -117,7 +132,15 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │   ├── rag.ts                  # RAG pipeline
 │   ├── chunking.ts             # Semantic chunking logic
 │   ├── documents.ts            # Document loading
-│   └── types.ts                # TypeScript types
+│   ├── types.ts                # TypeScript types
+│   └── email-templates/        # Email template configuration
+│       ├── config.ts           # Template configurations
+│       ├── types.ts            # Template type definitions
+│       └── profile-utils.ts    # Profile import/export utilities
+├── constants/
+│   └── email-templates/        # Individual email template definitions
+│       ├── index.ts            # Template registry
+│       └── *.ts                # Template files (25+ templates)
 ├── scripts/
 │   └── ingest.ts               # Ingestion script
 └── documents/                  # Your markdown files go here
@@ -217,10 +240,13 @@ x-ingest-secret: your-secret-key
 
 ### Email Templates
 
-- Select template type
-- Fill in recipient details
-- Customize with additional notes
-- Copy to clipboard and send!
+- Select from 25+ pre-configured templates (Splash/Sprout, teachers/parents/students)
+- Fill in event details, dates, locations, and Zoom links
+- Use rich text editor for custom formatting, tables, and colored text
+- Save configurations as profiles for quick reuse
+- Import/export profiles as JSON
+- Copy formatted HTML to clipboard
+- Toggle dark mode for comfortable editing
 
 ## Troubleshooting
 
@@ -243,6 +269,47 @@ x-ingest-secret: your-secret-key
 - The chunking logic uses GPT to analyze documents, which can be expensive. Consider caching chunking plans for large documents.
 - Email parsing assumes a specific format. Adjust `chunkEmails()` in `lib/chunking.ts` for different formats.
 - Pinecone free tier has limits. Monitor usage in the dashboard.
+
+## To-Do List
+
+### High Priority
+
+- **📱 Mobile Support**: Improve responsive design and mobile UX
+  - Optimize sidebar navigation for mobile devices
+  - Improve rich text editor touch controls
+  - Enhance form layouts for smaller screens
+
+- **📄 Update Documentation**: Refresh RAG knowledge base
+  - Update the Hitchhiker's Guide with latest Splash information
+  - Revise and expand source documents
+  - Add more recent email examples
+  - Improve document structure for better chunking
+
+### Feature Enhancements
+
+- **🎨 Template Creation System**: In-app template management
+  - Create new email templates directly in the web interface
+  - Add custom template fields and variables
+  - Visual template designer with drag-and-drop
+
+- **🔧 Modular Template System**: Make templates plug-and-play
+  - Each template should have its own `.config` file
+  - Define custom variables per template (dates, locations, links, etc.)
+  - Hot-reload templates without code changes
+  - Template marketplace/library for easy sharing
+
+- **📤 Export Templates**: Enhanced export functionality
+  - Export individual templates as standalone files
+  - Export complete profile configurations
+  - Share templates between users/teams
+  - Version control for template changes
+
+### Nice to Have
+
+- **🔍 Template Search**: Search and filter templates by category, audience, or tags
+- **📊 Analytics**: Track which templates are most used
+- **🌐 Multi-language Support**: Internationalization for email templates
+- **🔔 Template Suggestions**: AI-powered template recommendations based on context
 
 ## License
 
