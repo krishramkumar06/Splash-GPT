@@ -18,25 +18,42 @@ export function Sidebar() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-white dark:bg-gray-900">
-      {/* Header with Logo */}
-      <div className="border-b bg-yaleBlue p-6 text-white">
+    <div
+      className="
+        flex h-[100dvh] flex-col border-r
+        bg-white dark:bg-gray-900
+        w-16 sm:w-64
+      "
+    >
+      {/* Header */}
+      <div className="border-b bg-yaleBlue p-3 sm:p-6 text-white">
         <div className="mb-3 flex justify-center">
+          <Image
+            src="/logo.png"
+            alt="SplashGPT Logo"
+            width={48}
+            height={48}
+            className="rounded-lg sm:hidden"
+            priority
+          />
           <Image
             src="/logo.png"
             alt="SplashGPT Logo"
             width={120}
             height={120}
-            className="rounded-lg"
+            className="rounded-lg hidden sm:block"
             priority
           />
         </div>
-        <h1 className="text-xl font-bold">Splash at Yale</h1>
-        <p className="mt-1 text-sm text-blue-100">Admin Assistant</p>
+
+        <div className="hidden sm:block">
+          <h1 className="text-xl font-bold">Splash at Yale</h1>
+          <p className="mt-1 text-sm text-blue-100">Admin Assistant</p>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 p-2 sm:p-4">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -44,23 +61,28 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center rounded-lg transition-colors",
+                "justify-center sm:justify-start",
+                "gap-0 sm:gap-3",
+                "px-2 sm:px-3 py-2 text-sm font-medium",
                 isActive
                   ? "bg-yaleBlue text-white"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
               )}
             >
               <item.icon className="h-5 w-5" />
-              {item.name}
+              <span className="hidden sm:inline">{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* Footer */}
-      <div className="border-t p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Theme</span>
+      <div className="border-t p-2 sm:p-4">
+        <div className="mb-3 flex items-center justify-center sm:justify-between">
+          <span className="hidden sm:inline text-xs font-medium text-gray-700 dark:text-gray-300">
+            Theme
+          </span>
           <Button
             variant="outline"
             size="sm"
@@ -75,8 +97,9 @@ export function Sidebar() {
             )}
           </Button>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          AI assistant - verify critical details with the Splash team
+
+        <p className="hidden sm:block text-xs text-gray-500 dark:text-gray-400">
+          AI assistant – verify critical details with the Splash team
         </p>
       </div>
     </div>
