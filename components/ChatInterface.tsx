@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,11 +31,6 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +103,6 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-background">
-      {/* Messages Area */}
       <ScrollArea className="flex-1 p-3 sm:p-6">
         <div className="mx-auto max-w-3xl space-y-2">
           {messages.map((message, idx) => (
@@ -132,12 +126,9 @@ export function ChatInterface() {
               </div>
             </div>
           )}
-
-          <div ref={bottomRef} />
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
       <div className="sticky bottom-0 border-t bg-background p-3 sm:p-4">
         <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
           <div className="flex gap-2 items-center">
