@@ -21,10 +21,12 @@ const WELCOME_MESSAGE: Message = {
   content: `Hi! I'm the Splash at Yale assistant. I can help you find information from our guides and documentation.
 
 Ask me things like:
-• "How do teachers register on the website?"
-• "What should I tell parents about lunch?"
-• "Where do students check in on Splash day?"
-• "How do we handle class cancellations?"`,
+
+- How do teachers register on the website?
+- What should I tell parents about lunch?
+- Where do students check in on Splash day?
+- How do we handle class cancellations?
+`,
 };
 
 export function ChatInterface() {
