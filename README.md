@@ -1,320 +1,100 @@
-# Yale Splash RAG Chatbot
-
-A Next.js 14 RAG (Retrieval-Augmented Generation) chatbot application for Yale Splash administrators and volunteers. This tool helps users quickly find information from documentation and guides while managing the Splash event.
-
-## Recent Updates
-
-- ✨ **Dark Mode**: Complete dark mode implementation with navy-blue theme
-- 🎨 **Theme System**: Comprehensive CSS variable-based theming for consistent styling
-- 📝 **Enhanced Editor**: Improved rich text editor with better dark mode support
-- 💾 **Profile Management**: Import/export functionality for template configurations
-- 🗓️ **Spring 2026 Templates**: Pre-configured templates with Yale Splash Spring 2026 dates
-- 🐛 **Bug Fixes**: Resolved text visibility issues, input field styling, and theme consistency
-
-## Features
-
-- **💬 Chat Interface**: Ask questions and get answers from the knowledge base with source citations
-- **✉️ Email Templates**: Generate and customize pre-formatted emails for teachers, parents, and students
-- **🎨 Dark Mode**: Full dark mode support with navy-blue theme across the entire application
-- **📝 Rich Text Editor**: Tiptap-powered WYSIWYG editor with formatting, tables, links, and color customization
-- **📋 Profile Import/Export**: Save and load email template configurations as JSON profiles
-- **🔍 Semantic Search**: GPT-powered document chunking and vector search via Pinecone
-- **⚡ Streaming Responses**: Real-time responses using GPT-4o-mini
-- **🗓️ Template Management**: Pre-configured templates for Spring 2026 with customizable dates and locations
-
-## Tech Stack
-
-- **Framework**: Next.js 14 (App Router) with TypeScript
-- **UI**: Tailwind CSS + shadcn/ui
-- **Vector Store**: Pinecone (serverless)
-- **AI**: OpenAI API (text-embedding-3-small + gpt-4o-mini)
-- **Deployment**: Vercel
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- OpenAI API key
-- Pinecone account and API key
-
-### Installation
-
-1. Clone the repository and install dependencies:
-
-```bash
-npm install
-```
-
-2. Set up environment variables:
-
-Copy `.env.example` to `.env.local` and fill in your credentials:
-
-```bash
-cp .env.example .env.local
-```
-
-Required variables:
-- `OPENAI_API_KEY` - Your OpenAI API key
-- `PINECONE_API_KEY` - Your Pinecone API key
-- `PINECONE_INDEX` - Pinecone index name (default: yale-splash)
-- `INGEST_SECRET` - Secret key to protect the ingestion endpoint
-
-### Pinecone Setup
-
-1. Create a serverless index in Pinecone
-2. Configuration:
-   - Dimensions: 1536 (for text-embedding-3-small)
-   - Metric: cosine
-   - Cloud: AWS (us-east-1 recommended)
-
-### Adding Documents
-
-Place your markdown documents in the `documents/` folder:
-- `hitchhikers-guide.md` - Main guide for running Splash
-- `website-docs.md` - Website/platform documentation
-- `emails-2025.md` - Email history and examples
-
-### Running the Ingestion
-
-Before using the chatbot, you need to ingest the documents into Pinecone:
-
-```bash
-npm run ingest
-```
-
-This will:
-1. Load all documents from the `documents/` folder
-2. Use GPT to semantically chunk the large documents (cached for faster re-runs)
-3. Parse emails with metadata extraction
-4. Generate embeddings for all chunks
-5. Upload vectors to Pinecone
-
-**Note**: This process uses OpenAI API and may take several minutes depending on document size.
-
-**Caching**: The chunking analysis is cached in `.chunk-cache/`. If you re-run ingestion with the same documents, it will use the cached chunks and skip the GPT analysis, saving time and API costs. Delete this folder to force re-analysis.
-
-### Development
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Project Structure
-
-```
-├── app/
-│   ├── layout.tsx              # Root layout with sidebar
-│   ├── page.tsx                # Chat page
-│   ├── email-templates/
-│   │   └── page.tsx            # Email template generator
-│   └── api/
-│       ├── chat/
-│       │   └── route.ts        # Streaming chat endpoint
-│       └── ingest/
-│           └── route.ts        # Document ingestion endpoint
-├── components/
-│   ├── ChatInterface.tsx       # Main chat UI
-│   ├── ChatMessage.tsx         # Message bubble component
-│   ├── Sidebar.tsx             # Navigation sidebar
-│   ├── EmailTemplateForm.tsx   # Email template form with profile management
-│   ├── RichTextEditor.tsx      # Tiptap rich text editor
-│   ├── ThemeProvider.tsx       # Dark mode theme provider
-│   └── ui/                     # shadcn/ui components
-├── lib/
-│   ├── pinecone.ts             # Pinecone client
-│   ├── openai.ts               # OpenAI client
-│   ├── embeddings.ts           # Embedding generation
-│   ├── rag.ts                  # RAG pipeline
-│   ├── chunking.ts             # Semantic chunking logic
-│   ├── documents.ts            # Document loading
-│   ├── types.ts                # TypeScript types
-│   └── email-templates/        # Email template configuration
-│       ├── config.ts           # Template configurations
-│       ├── types.ts            # Template type definitions
-│       └── profile-utils.ts    # Profile import/export utilities
-├── constants/
-│   └── email-templates/        # Individual email template definitions
-│       ├── index.ts            # Template registry
-│       └── *.ts                # Template files (25+ templates)
-├── scripts/
-│   └── ingest.ts               # Ingestion script
-└── documents/                  # Your markdown files go here
-    ├── hitchhikers-guide.md
-    ├── website-docs.md
-    └── emails-2025.md
-```
-
-## How It Works
-
-### Semantic Chunking
-
-The app uses GPT-4o-mini to intelligently chunk documents:
-
-1. **Analysis Phase**: GPT analyzes the document structure and creates a chunking plan
-2. **Section Extraction**: Chunks are extracted based on semantic sections
-3. **Metadata Tagging**: Each chunk is tagged with:
-   - Source document
-   - Section title
-   - Relevant audience (teachers, parents, students, organizers)
-   - Category (teaching, registration, day-of, etc.)
-   - Date context (for emails)
-
-### RAG Pipeline
-
-When a user asks a question:
-
-1. Query is embedded using text-embedding-3-small
-2. Top 6 relevant chunks are retrieved from Pinecone
-3. Context is formatted with metadata
-4. GPT-4o-mini generates a streaming response
-
-## API Endpoints
-
-### POST /api/chat
-
-Chat with the assistant.
-
-**Request:**
-```json
-{
-  "message": "How do teachers register?",
-  "history": [
-    { "role": "user", "content": "..." },
-    { "role": "assistant", "content": "..." }
-  ]
-}
-```
-
-**Response:** Streaming text
-
-### POST /api/ingest
-
-Trigger document re-ingestion (protected by `INGEST_SECRET`).
-
-**Headers:**
-```
-x-ingest-secret: your-secret-key
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "summary": {
-    "hitchhikersGuide": 45,
-    "websiteDocs": 52,
-    "emails": 23,
-    "total": 120
-  },
-  "categoryBreakdown": {
-    "teaching": 30,
-    "registration": 25,
-    ...
-  }
-}
-```
-
-## Deployment
-
-### Vercel
-
-1. Push your code to GitHub
-2. Import the repository in Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
-
-**Important**: Run the ingestion script locally or via API after deployment to populate the vector database.
-
-## Usage Tips
-
-### Chat Interface
-
-- Ask specific questions: "How do teachers register on the website?"
-- Request information for specific audiences: "What should I tell parents about lunch?"
-- Cross-reference: "Does the email match what the guide says about check-in?"
-
-### Email Templates
-
-- Select from 25+ pre-configured templates (Splash/Sprout, teachers/parents/students)
-- Fill in event details, dates, locations, and Zoom links
-- Use rich text editor for custom formatting, tables, and colored text
-- Save configurations as profiles for quick reuse
-- Import/export profiles as JSON
-- Copy formatted HTML to clipboard
-- Toggle dark mode for comfortable editing
-
-## Troubleshooting
-
-### Ingestion fails
-- Check OpenAI API key and quota
-- Verify Pinecone index configuration
-- Ensure documents exist in `documents/` folder
-
-### Chat returns irrelevant results
-- Re-run ingestion to refresh vectors
-- Check if documents cover the topic
-- Try rephrasing the question
-
-### Streaming doesn't work
-- Ensure Edge Runtime is enabled (check route.ts)
-- Verify OpenAI API key is valid
-
-## Development Notes
-
-- The chunking logic uses GPT to analyze documents, which can be expensive. Consider caching chunking plans for large documents.
-- Email parsing assumes a specific format. Adjust `chunkEmails()` in `lib/chunking.ts` for different formats.
-- Pinecone free tier has limits. Monitor usage in the dashboard.
-
-## To-Do List
-
-### High Priority
-
-- **📱 Mobile Support**: Improve responsive design and mobile UX
-  - Optimize sidebar navigation for mobile devices
-  - Improve rich text editor touch controls
-  - Enhance form layouts for smaller screens
-
-- **📄 Update Documentation**: Refresh RAG knowledge base
-  - Update the Hitchhiker's Guide with latest Splash information
-  - Revise and expand source documents
-  - Add more recent email examples
-  - Improve document structure for better chunking
-
-### Feature Enhancements
-
-- **🎨 Template Creation System**: In-app template management
-  - Create new email templates directly in the web interface
-  - Add custom template fields and variables
-  - Visual template designer with drag-and-drop
-
-- **🔧 Modular Template System**: Make templates plug-and-play
-  - Each template should have its own `.config` file
-  - Define custom variables per template (dates, locations, links, etc.)
-  - Hot-reload templates without code changes
-  - Template marketplace/library for easy sharing
-
-- **📤 Export Templates**: Enhanced export functionality
-  - Export individual templates as standalone files
-  - Export complete profile configurations
-  - Share templates between users/teams
-  - Version control for template changes
-
-### Nice to Have
-
-- **🔍 Template Search**: Search and filter templates by category, audience, or tags
-- **📊 Analytics**: Track which templates are most used
-- **🌐 Multi-language Support**: Internationalization for email templates
-- **🔔 Template Suggestions**: AI-powered template recommendations based on context
-
-## License
-
-MIT
-
-## Support
-
-For issues or questions, contact the Splash at Yale team.
+# Splash HQ
+
+**One file. No installs, no accounts, no servers.** Splash HQ is the manual, the
+semester calendar, and the email generator for running Splash & Sprout — all inside
+`Splash HQ.html`.
+
+## How to use it
+
+1. Open the live version at **https://krishramkumar06.github.io/Splash-GPT/** —
+   or download `Splash HQ.html` from the Drive (right-click → Download) and
+   double-click it; it works offline either way.
+2. Enter the board password (ask any current director).
+
+This folder is mirrored to GitHub at
+[krishramkumar06/Splash-GPT](https://github.com/krishramkumar06/Splash-GPT)
+(the repo keeps its old name from the retired Splash-GPT app, which lives on in
+its git history). After editing the wiki and running `rebuild.py`, push the
+folder to the repo and GitHub Pages redeploys the app automatically.
+
+The password keeps casual visitors out, but it is **not** real security — the
+handbook text lives inside the file for anyone who opens the source. Don't put
+truly sensitive things (bank details, personal info) in the docs.
+
+## What's inside
+
+- **This semester** — a dated timeline of every deadline and every email to send,
+  computed from Setup, with a "today" marker. Two buttons up top:
+  **Download calendar (.ics)** imports the whole plan into the yalesplash Google
+  Calendar, and **Copy meeting agenda** drafts your weekly directors' meeting
+  agenda from whatever is due in the next two weeks.
+- **Email studio** — 20 templates (semester emails plus panlist/Instagram blurbs),
+  pre-filled from Setup. Edit the preview inline, then **Copy email (formatted)**
+  into Gmail or the website's email panel. `{{user.first_name}}` tags stay as-is —
+  the website fills those per recipient.
+- **Handbook** — the Hitchhiker's Guide, website docs, and 2025 email archive,
+  searchable (multi-word, ranked). For real semantic Q&A, use **Ask the handbook**:
+  paste a free Gemini API key once (aistudio.google.com/apikey) and ask anything —
+  the entire handbook is sent as context over the API. Why not just paste it into a
+  chatbot yourself? The full pack is ~120k tokens, which overflows most chat paste
+  boxes; that's also why there are per-source copy buttons (guide ~76k, website
+  docs ~32k, email archive ~13k) and a download button for file-upload workflows.
+- **Setup** — program date, deadlines, links, Zoom sessions. The **Estimate the
+  empty deadlines** button fills every blank deadline from the program day using
+  typical semester spacing — then sanity-check against breaks and midterms.
+  Everything saves in your browser; **Download config file** and drop it in this
+  folder so co-directors can **Load** the same one.
+- **Dark mode** — toggle in the top right; it remembers your choice.
+
+## Start of a new semester (directors' checklist)
+
+1. **Setup** → **Start a fresh semester** → pick the program.
+2. Enter the program day → **Estimate the empty deadlines** → adjust.
+3. Paste in this semester's Google Form links as you create them.
+4. **Download config file** → put it in this folder, named by semester.
+5. **This semester** → **Download calendar (.ics)** → import into the shared
+   Google Calendar. Live out of that tab all semester.
+
+## The wiki (updating the handbook)
+
+As of July 2026 the guide lives in `wiki/` as one small page per task, grouped
+into sections S0–S7. Each page starts with an **Owner / Last reviewed / Status**
+line. The old monolithic Hitchhiker's Guide was split into these pages
+(original frozen in `archive/`).
+
+To update the handbook:
+
+1. Edit the page in `wiki/` (or add a new one — copy an existing page's header).
+2. Update its "Last reviewed" line.
+3. In a terminal, from this folder: `python3 rebuild.py`
+   (it compiles every wiki page into the app and lists any pages whose review
+   date has gone stale).
+4. Re-upload `Splash HQ.html` to the Drive.
+
+Steps 1–2 are the ones that matter — the wiki files are the source of truth,
+so even if nobody around can run Python, edit the pages anyway and leave the
+rebuild for later. Every program's Phil (see wiki S0.03) ends by assigning
+wiki edits; that's how this handbook stays alive.
+
+## Changing the password
+
+The app stores only a SHA-256 hash. To change it, compute the new hash
+(`python3 -c "import hashlib;print(hashlib.sha256(b'newpassword').hexdigest())"`)
+and replace the value of `GATE_HASH` in `Splash HQ.html`.
+
+## Folder contents
+
+- `Splash HQ.html` — the app (this is the only file most people need)
+- `wiki/` — the handbook source: one page per task, sections S0–S7
+- `docs/` — source markdown for the website docs and email archive
+- `reference/` — raw source material (e.g., every email a full fall cycle sent)
+- `rebuild.py` — compiles `wiki/` + `docs/` into the app
+- `archive/` — frozen earlier versions (v1, and the pre-wiki monolithic guide)
+
+## Where this came from
+
+Splash HQ replaces the old **Splash-GPT** app (`Splash-GPT-main` next door), which
+needed OpenAI + Pinecone accounts, an ingestion step, and a Vercel deployment —
+too much upkeep for a board that turns over every year. All of its templates and
+documents were carried over, plus the send-date calendar, agenda generator, and
+calendar export it never had.
