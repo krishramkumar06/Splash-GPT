@@ -6,16 +6,16 @@ semester calendar, and the email generator for running Splash & Sprout — all i
 
 ## How to use it
 
-1. Open the live version at **https://krishramkumar06.github.io/Splash-GPT/** —
-   or download `Splash HQ.html` from the Drive (right-click → Download) and
-   double-click it; it works offline either way.
+1. Open the live version at **https://yalesplashgpt.org** — or download
+   `Splash HQ.html` from the Drive (right-click → Download) and double-click
+   it; it works offline either way.
 2. Enter the board password (ask any current director).
 
 This folder is mirrored to GitHub at
 [krishramkumar06/Splash-GPT](https://github.com/krishramkumar06/Splash-GPT)
 (the repo keeps its old name from the retired Splash-GPT app, which lives on in
 its git history). After editing the wiki and running `rebuild.py`, push the
-folder to the repo and GitHub Pages redeploys the app automatically.
+folder to the repo — Vercel redeploys yalesplashgpt.org automatically.
 
 The password keeps casual visitors out, but it is **not** real security — the
 handbook text lives inside the file for anyone who opens the source. Don't put

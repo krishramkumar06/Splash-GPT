@@ -253,6 +253,8 @@ footer a{color:var(--muted)}
   .sp-date{text-align:left}
   .sp-dot{display:none}
 }
+.legal-org{margin-top:18px;font-weight:600;font-size:.85rem;opacity:.85}
+.legal-disclaimer{font-size:.72rem;line-height:1.5;opacity:.65;max-width:620px;margin:6px auto 0}
 </style>
 </head>
 <body>
@@ -265,6 +267,8 @@ footer a{color:var(--muted)}
       <button class="btn" type="submit">Open</button>
     </form>
     <p class="gate-err" id="gate-err"></p>
+    <p class="legal-org">Splash at Yale — an Undergraduate Organization</p>
+    <p class="legal-disclaimer">“Yale” and “Yale University” are registered trademarks of Yale University. This website is a student-run website and is maintained, hosted, and operated independently of Yale University. The activities on this website are not supervised or endorsed by Yale, and information contained on this website does not necessarily reflect the opinions or official positions of the University.</p>
   </div>
 </div>
 <div class="stripe"></div>
@@ -393,7 +397,9 @@ footer a{color:var(--muted)}
 
 <footer>
   <p>Splash HQ · lives in the Splash Google Drive · replaces the old SplashGPT app (no servers, no API keys, works offline).
-  To update the handbook text, edit the files in <code>docs/</code> and run <code>python3 rebuild.py</code> — instructions in the README.</p>
+  To update the handbook, edit the pages in <code>wiki/</code> and run <code>python3 rebuild.py</code> — instructions in the README.</p>
+  <p class="legal-org">Splash at Yale — an Undergraduate Organization</p>
+  <p class="legal-disclaimer">“Yale” and “Yale University” are registered trademarks of Yale University. This website is a student-run website and is maintained, hosted, and operated independently of Yale University. The activities on this website are not supervised or endorsed by Yale, and information contained on this website does not necessarily reflect the opinions or official positions of the University.</p>
 </footer>
 
 <!-- ======== embedded knowledge (injected by rebuild.py) ======== -->
