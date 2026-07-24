@@ -4,18 +4,35 @@
 semester calendar, and the email generator for running Splash & Sprout — all inside
 `Splash HQ.html`.
 
+*(New here, wondering why an app called Splash HQ lives in a repo called
+Splash-GPT? [Here's the story.](#where-this-came-from))*
+
+## What this is
+
+[Yale Splash](https://yale.learningu.org) is Yale's largest educational outreach
+organization: each semester, hundreds of local 7th–12th graders come to campus
+for a day of classes taught by Yale students on whatever they're excited to
+teach. Its sibling program, Sprout, does the same for 6th–9th graders over a
+two-day weekend. Both are run by a small student board that turns over almost
+completely every year — so every semester, someone new has to figure out how to
+run a several-hundred-person program from scratch.
+
+Splash HQ is how that knowledge survives the turnover. It packs a decade of
+institutional how-to, a computed timeline of every deadline and email in the
+semester, and twenty pre-filled email templates into a single dependency-free
+HTML file. A brand-new director can double-click it and see exactly what to do
+and when.
+
 ## How to use it
 
 1. Open the live version at **https://yalesplashgpt.org** — or download
-   `Splash HQ.html` from the Drive (right-click → Download) and double-click
+   `Splash HQ.html` (from this repo or the board Drive) and double-click
    it; it works offline either way.
 2. Enter the board password (ask any current director).
 
-This folder is mirrored to GitHub at
-[krishramkumar06/Splash-GPT](https://github.com/krishramkumar06/Splash-GPT)
-(the repo keeps its old name from the retired Splash-GPT app, which lives on in
-its git history). After editing the wiki and running `rebuild.py`, push the
-folder to the repo — Vercel redeploys yalesplashgpt.org automatically.
+This repo mirrors the `Handbook — Splash HQ` folder in the board Drive. After
+editing the wiki and running `rebuild.py`, push the folder here — Vercel
+redeploys yalesplashgpt.org automatically.
 
 The password keeps casual visitors out, but it is **not** real security — the
 handbook text lives inside the file for anyone who opens the source. Don't put
@@ -93,8 +110,16 @@ and replace the value of `GATE_HASH` in `Splash HQ.html`.
 
 ## Where this came from
 
-Splash HQ replaces the old **Splash-GPT** app (`Splash-GPT-main` next door), which
-needed OpenAI + Pinecone accounts, an ingestion step, and a Vercel deployment —
-too much upkeep for a board that turns over every year. All of its templates and
-documents were carried over, plus the send-date calendar, agenda generator, and
-calendar export it never had.
+This repo's first life was **SplashGPT**: an AI-powered email template editor
+and RAG chatbot for the same org — a Next.js app that pre-filled the semester's
+emails and answered questions over the handbook using OpenAI + Pinecone. It
+worked, but it needed paid API accounts, a document-ingestion step, and a
+server deployment — too much upkeep to hand off to a board that turns over
+every year.
+
+In 2026 it was retired and rebuilt as Splash HQ: everything moved into one
+static HTML file, the AI Q&A became bring-your-own-Gemini-key, and the
+send-date calendar, agenda generator, and calendar export the old app never
+had were added. All of SplashGPT's templates and documents were carried over,
+and the old app itself lives on in this repo's git history (every commit
+before "Replace retired Splash-GPT app").
